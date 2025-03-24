@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>To Do List</h1>
+    <div class="form-container">
+        <input type="text" id="activity" placeholder="Activity">
+        <input type="date" id="dueDate">
+        <button id="addButton">Add Components</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Activity</th>
+                <th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody id="taskTableBody">
+            <!-- Tasks will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <script>
+        // Function to fetch and display tasks
+        async function fetchTasks() {
+            const response = await fetch('/get-tasks');
+            const tasks = await response.json();
+            const taskTableBody = document.getElementById('taskTableBody');
+
+            // Clear existing rows
+            taskTableBody.innerHTML = '';
+
+            // Add tasks to the table
+            tasks.forEach(task => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${task.title}</td>
+                    <td>${task.dueDate}</td>
+                `;
+                taskTableBody.appendChild(row);
+            });
+        }
+
+        // Function to add a task
+        async function addTask() {
+            const activity = document.getElementById('activity').value;
+            const dueDate = document.getElementById('dueDate').value;
+
+            if (!activity || !dueDate) {
+                alert('Please fill in both fields');
+                return;
+            }
+
+            const response = await fetch('/add-task', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ activity, dueDate }),
+            });
+
+            if (response.ok) {
+                // Clear input fields
+                document.getElementById('activity').value = '';
+                document.getElementById('dueDate').value = '';
+
+                // Refresh the task list
+                fetchTasks();
+            } else {
+                alert('Failed to add task');
+            }
+        }
+
+        // Event listener for the add button
+        document.getElementById('addButton').addEventListener('click', addTask);
+
+        // Fetch tasks when the page loads
+        fetchTasks();
+    </script>
+</body>
+</html>
