@@ -23,8 +23,7 @@ app.post('/add-task', (req, res) => {
     if (!activity || !dueDate) {
         return res.status(400).json({ error: 'Activity and due date are required' });
     }
-
-
+    
     // Add the task using tasksDB
     const newTask = tasksDB.addTask({ title: activity, dueDate: dueDate });
 
@@ -36,6 +35,31 @@ app.post('/add-task', (req, res) => {
 app.get('/get-tasks', (req, res) => {
     const tasks = tasksDB.getTasks();
     res.json(tasks);
+});
+
+// Handle DELETE request to remove a task
+app.delete('/remove-task/:id', (req, res) => {
+    const taskId = parseInt(req.params.id);
+    tasksDB.deleteTask(taskId);
+    res.status(200).json({ success: true, message: "Task deleted successfully" });
+});
+
+// Handle PUT request to update a task
+app.put('/update-task/:id', (req, res) => {
+    const taskId = parseInt(req.params.id);
+    const { title, dueDate } = req.body;
+
+    if (!title || !dueDate) {
+        return res.status(400).json({ error: 'Title and due date are required' });
+    }
+
+    const updatedTask = tasksDB.updateTask(taskId, { title, dueDate });
+    
+    if (updatedTask) {
+        res.json(updatedTask);
+    } else {
+        res.status(404).json({ error: 'Task not found' });
+    }
 });
 
 // Start the server
