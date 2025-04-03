@@ -26,145 +26,175 @@
         </tbody>
     </table>
 
-    <script>
-        // Function to fetch and display tasks
-        async function fetchTasks() {
-            const response = await fetch('/get-tasks');
-            const tasks = await response.json();
-            const taskTableBody = document.getElementById('taskTableBody');
-            // Clear existing rows
-            taskTableBody.innerHTML = '';
+<script>
+    // Function to fetch and display tasks
+    async function fetchTasks() {
+        const response = await fetch('/get-tasks');
+        const tasks = await response.json();
+        const taskTableBody = document.getElementById('taskTableBody');
+        // Clear existing rows
+        taskTableBody.innerHTML = '';
 
-            // Add tasks to the table
-            tasks.forEach(task => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${task.title}</td>
-                    <td>${task.dueDate}</td>
-                    <td>
-                        <button class="edit-btn" data-id="${task.id}">Edit</button>
-                        <button class="remove-btn" data-id="${task.id}">Remove</button>
-                    </td>
-                `;
-                taskTableBody.appendChild(row);
-            });
+        // Get current date for comparison
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
 
-            document.querySelectorAll('.remove-btn').forEach(button => {
-                button.addEventListener('click', removeTask);
-            });
+        // Add tasks to the table
+        tasks.forEach(task => {
+            const row = document.createElement('tr');
             
-            document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', editTask);
-            });
-        }
+            // Check if task is overdue
+            const dueDate = new Date(task.dueDate);
+            dueDate.setHours(0, 0, 0, 0);
+            const isOverdue = dueDate < currentDate;
+            
+            row.innerHTML = `
+                <td class="${task.completed ? 'completed' : ''} ${isOverdue && !task.completed ? 'overdue' : ''}">${task.title}</td>
+                <td class="${task.completed ? 'completed' : ''} ${isOverdue && !task.completed ? 'overdue' : ''}">${task.dueDate}</td>
+                <td>
+                    ${!task.completed ? `<button class="complete-btn" data-id="${task.id}">Complete</button>` : ''}
+                    <button class="edit-btn" data-id="${task.id}">Edit</button>
+                    <button class="remove-btn" data-id="${task.id}">Remove</button>
+                </td>
+            `;
+            taskTableBody.appendChild(row);
+        });
+
+        // Add event listeners to all buttons
+        document.querySelectorAll('.remove-btn').forEach(button => {
+            button.addEventListener('click', removeTask);
+        });
         
-        // Function to handle editing a task
-        async function editTask(event) {
-            const taskId = event.target.getAttribute('data-id');
-            const row = event.target.closest('tr');
-            const cells = row.cells;
-            
-            // Get current values
-            const currentTitle = cells[0].textContent;
-            const currentDueDate = cells[1].textContent;
-            
-            // Create input fields for editing
-            const titleInput = document.createElement('input');
-            titleInput.type = 'text';
-            titleInput.value = currentTitle;
-            
-            const dateInput = document.createElement('input');
-            dateInput.type = 'date';
-            dateInput.value = currentDueDate;
-            
-            // Replace text with input fields
-            cells[0].textContent = '';
-            cells[1].textContent = '';
-            cells[0].appendChild(titleInput);
-            cells[1].appendChild(dateInput);
-            
-            // Change edit button to save button
-            const editButton = event.target;
-            editButton.textContent = 'Save';
-            editButton.removeEventListener('click', editTask);
-            editButton.addEventListener('click', async () => {
-                const newTitle = titleInput.value;
-                const newDueDate = dateInput.value;
-                
-                if (!newTitle || !newDueDate) {
-                    alert('Please fill in both fields');
-                    return;
-                }
-                
-                const response = await fetch(`/update-task/${taskId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        title: newTitle, 
-                        dueDate: newDueDate 
-                    }),
-                });
-                
-                if (response.ok) {
-                    fetchTasks(); // Refresh the task list
-                } else {
-                    alert('Failed to update task');
-                }
-            });
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', editTask);
+        });
+
+        document.querySelectorAll('.complete-btn').forEach(button => {
+            button.addEventListener('click', completeTask);
+        });
+    }
+
+    // Function to handle editing a task
+    async function editTask(event) {
+        if (event.target.closest('tr').querySelector('td').classList.contains('completed')) {
+            alert('Cannot edit completed tasks');
+            return;
         }
-
-        // Function to add a task
-        async function addTask() {
-            const activity = document.getElementById('activity').value;
-            const dueDate = document.getElementById('dueDate').value;
-
-            if (!activity || !dueDate) {
+        const taskId = event.target.getAttribute('data-id');
+        const row = event.target.closest('tr');
+        const cells = row.cells;
+        
+        // Get current values
+        const currentTitle = cells[0].textContent;
+        const currentDueDate = cells[1].textContent;
+        
+        // Create input fields for editing
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.value = currentTitle;
+        
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.value = currentDueDate;
+        
+        // Replace text with input fields
+        cells[0].textContent = '';
+        cells[1].textContent = '';
+        cells[0].appendChild(titleInput);
+        cells[1].appendChild(dateInput);
+        
+        // Change edit button to save button
+        const editButton = event.target;
+        editButton.textContent = 'Save';
+        editButton.removeEventListener('click', editTask);
+        editButton.addEventListener('click', async () => {
+            const newTitle = titleInput.value;
+            const newDueDate = dateInput.value;
+            
+            if (!newTitle || !newDueDate) {
                 alert('Please fill in both fields');
                 return;
             }
-
-            const response = await fetch('/add-task', {
-                method: 'POST',
+            
+            const response = await fetch(`/update-task/${taskId}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ activity, dueDate }),
+                body: JSON.stringify({ 
+                    title: newTitle, 
+                    dueDate: newDueDate 
+                }),
             });
-
-            if (response.ok) {
-                // Clear input fields
-                document.getElementById('activity').value = '';
-                document.getElementById('dueDate').value = '';
-
-                // Refresh the task list
-                fetchTasks();
-            } else {
-                alert('Failed to add task');
-            }
-        }
-
-        async function removeTask(event) {
-            const taskId = event.target.getAttribute('data-id');
             
-            const response = await fetch(`/remove-task/${taskId}`, {
-                method: 'DELETE',
-            });
-
             if (response.ok) {
-                // Refresh the task list
                 fetchTasks();
             } else {
-                alert('Failed to remove task');
+                alert('Failed to update task');
             }
+        });
+    }
+
+    // Function to add a task
+    async function addTask() {
+        const activity = document.getElementById('activity').value;
+        const dueDate = document.getElementById('dueDate').value;
+
+        if (!activity || !dueDate) {
+            alert('Please fill in both fields');
+            return;
         }
 
-        // Event listener for the add button
-        document.getElementById('addButton').addEventListener('click', addTask);
+        const response = await fetch('/add-task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ activity, dueDate }),
+        });
 
-        // Fetch tasks when the page loads
-        fetchTasks();
-    </script>
+        if (response.ok) {
+            document.getElementById('activity').value = '';
+            document.getElementById('dueDate').value = '';
+            fetchTasks();
+        } else {
+            alert('Failed to add task');
+        }
+    }
+
+    async function removeTask(event) {
+        const taskId = event.target.getAttribute('data-id');
+        
+        const response = await fetch(`/remove-task/${taskId}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            fetchTasks();
+        } else {
+            alert('Failed to remove task');
+        }
+    }
+
+    async function completeTask(event) {
+        const taskId = event.target.getAttribute('data-id');
+    
+        const response = await fetch(`/complete-task/${taskId}`, {
+            method: 'PUT',
+        });
+
+        if (response.ok) {
+            fetchTasks();
+        } else {
+            alert('Failed to complete task');
+        }
+    }
+
+    // Event listener for the add button
+    document.getElementById('addButton').addEventListener('click', addTask);
+
+    // Fetch tasks when the page loads
+    fetchTasks();
+</script>
 </body>
 </html>

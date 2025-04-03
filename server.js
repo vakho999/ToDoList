@@ -62,7 +62,20 @@ app.put('/update-task/:id', (req, res) => {
     }
 });
 
-// Start the server
+app.put('/complete-task/:id', async (req, res) => {
+    try {
+      const task = tasksDB.completeTask(parseInt(req.params.id));
+      if (task) {
+        res.json(task);
+      } else {
+        res.status(404).send('Task not found');
+      }
+    } catch (error) {
+      res.status(500).send(error.message);
+    }
+  });
+
+  // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);

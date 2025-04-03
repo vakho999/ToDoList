@@ -2,21 +2,17 @@
 const fs = require('fs');
 const path = require('path');
 
-// Define the path to the JSON file
 const filePath = path.join(__dirname, 'tasks.json');
 
-// Helper function to load tasks from the JSON file
 function loadTasks() {
   try {
     const data = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    // Return an empty array if file doesn't exist or is invalid
     return [];
   }
 }
 
-// Helper function to save tasks back to the JSON file
 function saveTasks(tasks) {
   fs.writeFileSync(filePath, JSON.stringify(tasks, null, 2));
 }
@@ -26,17 +22,26 @@ function getTasks() {
   return loadTasks();
 }
 
-// Function to add a new task
 function addTask(taskData) {
   const tasks = loadTasks();
-  // Generate a new ID; if tasks exist, increment the last task's id, otherwise start at 1
   const newTask = {
     id: tasks.length ? tasks[tasks.length - 1].id + 1 : 1,
+    completed: false,
     ...taskData,
   };
   tasks.push(newTask);
   saveTasks(tasks);
   return newTask;
+}
+
+function completeTask(id) {
+  const tasks = loadTasks();
+  const task = tasks.find(t => t.id == id);
+  if (!task) return null;
+  task.completed = true;
+  task.completedAt = new Date().toISOString();
+  saveTasks(tasks);
+  return task;
 }
 
 // Function to update an existing task
@@ -65,4 +70,5 @@ module.exports = {
   addTask,
   updateTask,
   deleteTask,
+  completeTask,
 };

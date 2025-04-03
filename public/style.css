@@ -16,7 +16,7 @@ body {
     min-height: 100vh;
     color: #333;
     padding: 20px;
-    text-align: center; /* Centers all text content inside body */
+    text-align: center;
 }
 
 /* Main title styling */
@@ -88,7 +88,7 @@ table {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     overflow: hidden;
-    margin-bottom: 30px; /* Adds space after the table */
+    margin-bottom: 30px;
 }
 
 /* Table headers */
@@ -107,12 +107,61 @@ td {
     border-top: 1px solid #ddd;
 }
 
-/* Add some hover effects for rows */
+/* Row hover effects */
 tr:hover {
     background-color: #f1f1f1;
 }
 
-/* Add margin between form and table */
-.form-container, table {
-    margin-top: 20px;
+/* Overdue task styling */
+.overdue {
+    color: red;
+    font-weight: bold;
+}
+
+/* Completed task styling */
+.completed {
+    text-decoration: line-through;
+    color: #888;
+}
+
+/* Action buttons styling */
+.complete-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-right: 5px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.complete-btn:hover {
+    background-color: #45a049;
+}
+
+.edit-btn {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-right: 5px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.edit-btn:hover {
+    background-color: #0b7dda;
+}
+
+.remove-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.remove-btn:hover {
+    background-color: #da190b;
 }
