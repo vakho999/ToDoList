@@ -18,6 +18,7 @@
             <tr>
                 <th>Activity</th>
                 <th>Due Date</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody id="taskTableBody">
@@ -31,7 +32,6 @@
             const response = await fetch('/get-tasks');
             const tasks = await response.json();
             const taskTableBody = document.getElementById('taskTableBody');
-
             // Clear existing rows
             taskTableBody.innerHTML = '';
 
@@ -41,8 +41,77 @@
                 row.innerHTML = `
                     <td>${task.title}</td>
                     <td>${task.dueDate}</td>
+                    <td>
+                        <button class="edit-btn" data-id="${task.id}">Edit</button>
+                        <button class="remove-btn" data-id="${task.id}">Remove</button>
+                    </td>
                 `;
                 taskTableBody.appendChild(row);
+            });
+
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', removeTask);
+            });
+            
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', editTask);
+            });
+        }
+        
+        // Function to handle editing a task
+        async function editTask(event) {
+            const taskId = event.target.getAttribute('data-id');
+            const row = event.target.closest('tr');
+            const cells = row.cells;
+            
+            // Get current values
+            const currentTitle = cells[0].textContent;
+            const currentDueDate = cells[1].textContent;
+            
+            // Create input fields for editing
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.value = currentTitle;
+            
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.value = currentDueDate;
+            
+            // Replace text with input fields
+            cells[0].textContent = '';
+            cells[1].textContent = '';
+            cells[0].appendChild(titleInput);
+            cells[1].appendChild(dateInput);
+            
+            // Change edit button to save button
+            const editButton = event.target;
+            editButton.textContent = 'Save';
+            editButton.removeEventListener('click', editTask);
+            editButton.addEventListener('click', async () => {
+                const newTitle = titleInput.value;
+                const newDueDate = dateInput.value;
+                
+                if (!newTitle || !newDueDate) {
+                    alert('Please fill in both fields');
+                    return;
+                }
+                
+                const response = await fetch(`/update-task/${taskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        title: newTitle, 
+                        dueDate: newDueDate 
+                    }),
+                });
+                
+                if (response.ok) {
+                    fetchTasks(); // Refresh the task list
+                } else {
+                    alert('Failed to update task');
+                }
             });
         }
 
@@ -73,6 +142,21 @@
                 fetchTasks();
             } else {
                 alert('Failed to add task');
+            }
+        }
+
+        async function removeTask(event) {
+            const taskId = event.target.getAttribute('data-id');
+            
+            const response = await fetch(`/remove-task/${taskId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                // Refresh the task list
+                fetchTasks();
+            } else {
+                alert('Failed to remove task');
             }
         }
 
