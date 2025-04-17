@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "id": 1,
+    "completed": true,
+    "title": "aja",
+    "dueDate": "2025-04-01",
+    "completedAt": "2025-04-06T11:12:36.404Z"
+  },
+  {
+    "id": 2,
+    "completed": true,
+    "userId": 2,
+    "title": "adolf",
+    "dueDate": "2025-04-24",
+    "completedAt": "2025-04-17T14:04:27.324Z"
+  }
+]

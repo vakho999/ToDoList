@@ -8,7 +8,7 @@
 /* Body styling */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f2f5;
+    background: linear-gradient(135deg, #f0f2f5, #e8f5f9);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -19,44 +19,49 @@ body {
     text-align: center;
 }
 
-/* Main title styling */
+/* Main title */
 h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: bold;
-    color: #333;
+    color: #2c3e50;
     margin-bottom: 20px;
 }
 
-/* Form container styling */
+/* Form container */
 .form-container {
     background-color: #ffffff;
     padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     gap: 15px;
-    width: 300px;
+    width: 100%;
+    max-width: 350px;
     margin-bottom: 30px;
 }
 
-/* Input fields styling */
-input[type="text"], input[type="date"] {
+/* Input fields */
+input[type="text"],
+input[type="password"],
+input[type="date"] {
     padding: 12px;
     font-size: 16px;
     border: 2px solid #ddd;
     border-radius: 8px;
     outline: none;
     background-color: #f9f9f9;
-    transition: border-color 0.3s ease;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-input[type="text"]:focus, input[type="date"]:focus {
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus {
     border-color: #00b894;
-    box-shadow: 0 0 5px rgba(0, 184, 148, 0.5);
+    box-shadow: 0 0 6px rgba(0, 184, 148, 0.4);
 }
 
-/* Button styling */
+/* General button style */
 button {
     background-color: #00b894;
     color: white;
@@ -66,11 +71,11 @@ button {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 button:hover {
-    background-color: #098d62;
+    background-color: #019270;
     transform: translateY(-2px);
 }
 
@@ -78,90 +83,104 @@ button:active {
     transform: translateY(1px);
 }
 
-/* Table styling */
+/* Logout button */
+#logoutButton {
+    margin-bottom: 20px;
+}
+
+/* Table */
 table {
-    width: 80%;
+    width: 100%;
     max-width: 800px;
-    margin-top: 30px;
+    margin-top: 20px;
     border-collapse: collapse;
-    background-color: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    margin-bottom: 30px;
 }
 
 /* Table headers */
 th {
     background-color: #00b894;
     color: white;
-    padding: 12px 15px;
+    padding: 15px;
     text-align: left;
-    font-weight: bold;
+    font-size: 16px;
 }
 
 /* Table cells */
 td {
-    padding: 12px 15px;
-    text-align: left;
-    border-top: 1px solid #ddd;
+    padding: 14px 15px;
+    border-top: 1px solid #eee;
 }
 
-/* Row hover effects */
+/* Row hover */
 tr:hover {
-    background-color: #f1f1f1;
+    background-color: #f9f9f9;
 }
 
-/* Overdue task styling */
+/* Overdue tasks */
 .overdue {
-    color: red;
+    color: #e74c3c;
     font-weight: bold;
 }
 
-/* Completed task styling */
+/* Completed tasks */
 .completed {
     text-decoration: line-through;
-    color: #888;
+    color: #95a5a6;
 }
 
-/* Action buttons styling */
-.complete-btn {
-    background-color: #4CAF50;
-    color: white;
+/* Task action buttons */
+.complete-btn,
+.edit-btn,
+.remove-btn {
+    padding: 6px 12px;
+    font-size: 14px;
     border: none;
-    padding: 5px 10px;
+    border-radius: 5px;
     margin-right: 5px;
-    border-radius: 3px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
+.complete-btn {
+    background-color: #27ae60;
+    color: white;
+}
 .complete-btn:hover {
-    background-color: #45a049;
+    background-color: #219150;
 }
 
 .edit-btn {
-    background-color: #2196F3;
+    background-color: #2980b9;
     color: white;
-    border: none;
-    padding: 5px 10px;
-    margin-right: 5px;
-    border-radius: 3px;
-    cursor: pointer;
 }
-
 .edit-btn:hover {
-    background-color: #0b7dda;
+    background-color: #1c6fa1;
 }
 
 .remove-btn {
-    background-color: #f44336;
+    background-color: #e74c3c;
     color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 3px;
-    cursor: pointer;
+}
+.remove-btn:hover {
+    background-color: #c0392b;
 }
 
-.remove-btn:hover {
-    background-color: #da190b;
+/* Responsive */
+@media (max-width: 768px) {
+    table {
+        font-size: 14px;
+    }
+
+    .form-container {
+        width: 90%;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 10px;
+    }
 }
