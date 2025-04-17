@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="auth-section">
+        <h1>Login / Register</h1>
+        <div class="form-container">
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginButton">Login</button>
+            <button id="registerButton">Register</button>
+        </div>
+    </div>
+
+    <div id="app-section" style="display: none;">
+        <h1>To Do List</h1>
+        <button id="logoutButton">Logout</button>
+        <div class="form-container">
+            <input type="text" id="activity" placeholder="Activity">
+            <input type="date" id="dueDate">
+            <button id="addButton">Add Task</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Due Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="taskTableBody">
+                <!-- Tasks will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+<script>
+    // Auth functions
+    async function login(username, password) {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
+        
+        if (response.ok) {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('app-section').style.display = 'block';
+            fetchTasks();
+        } else {
+            const error = await response.json();
+            alert(error.error);
+        }
+    }
+
+    async function register(username, password) {
+        const response = await fetch('/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
+        
+        if (response.ok) {
+            alert('Registration successful. Please login.');
+        } else {
+            const error = await response.json();
+            alert(error.error);
+        }
+    }
+
+    async function logout() {
+        const response = await fetch('/logout', {
+            method: 'POST',
+        });
+        
+        if (response.ok) {
+            document.getElementById('auth-section').style.display = 'block';
+            document.getElementById('app-section').style.display = 'none';
+            document.getElementById('taskTableBody').innerHTML = '';
+        }
+    }
+
+    // Check if user is already logged in on page load
+    async function checkAuth() {
+        try {
+            const response = await fetch('/get-tasks', { credentials: 'include' });
+            if (response.ok) {
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('app-section').style.display = 'block';
+                fetchTasks();
+            }
+        } catch (error) {
+            // Not logged in
+        }
+    }
+
+    // Event listeners for auth buttons
+    document.getElementById('loginButton').addEventListener('click', () => {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        login(username, password);
+    });
+
+    document.getElementById('registerButton').addEventListener('click', () => {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        register(username, password);
+    });
+
+    document.getElementById('logoutButton').addEventListener('click', logout);
+
+    // Update all fetch calls to include credentials
+    async function fetchWithAuth(url, options = {}) {
+        const response = await fetch(url, {
+            ...options,
+            credentials: 'include'
+        });
+        if (response.status === 401) {
+            logout();
+            throw new Error('Unauthorized');
+        }
+        return response;
+    }
+
+    // Update all your existing functions to use fetchWithAuth instead of fetch
+    async function fetchTasks() {
+        try {
+            const response = await fetchWithAuth('/get-tasks');
+            const tasks = await response.json();
+            const taskTableBody = document.getElementById('taskTableBody');
+            taskTableBody.innerHTML = '';
+
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+
+            tasks.forEach(task => {
+                const row = document.createElement('tr');
+                const dueDate = new Date(task.dueDate);
+                dueDate.setHours(0, 0, 0, 0);
+                const isOverdue = dueDate < currentDate;
+                
+                row.innerHTML = `
+                    <td class="${task.completed ? 'completed' : ''} ${isOverdue && !task.completed ? 'overdue' : ''}">${task.title}</td>
+                    <td class="${task.completed ? 'completed' : ''} ${isOverdue && !task.completed ? 'overdue' : ''}">${task.dueDate}</td>
+                    <td>
+                        ${!task.completed ? `<button class="complete-btn" data-id="${task.id}">Complete</button>` : ''}
+                        <button class="edit-btn" data-id="${task.id}">Edit</button>
+                        <button class="remove-btn" data-id="${task.id}">Remove</button>
+                    </td>
+                `;
+                taskTableBody.appendChild(row);
+            });
+
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', removeTask);
+            });
+            
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', editTask);
+            });
+
+            document.querySelectorAll('.complete-btn').forEach(button => {
+                button.addEventListener('click', completeTask);
+            });
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+        }
+    }
+
+    // Update all your other functions (addTask, removeTask, editTask, completeTask)
+    // to use fetchWithAuth instead of fetch
+
+    async function addTask() {
+        const activity = document.getElementById('activity').value;
+        const dueDate = document.getElementById('dueDate').value;
+
+        if (!activity || !dueDate) {
+            alert('Please fill in both fields');
+            return;
+        }
+
+        try {
+            const response = await fetchWithAuth('/add-task', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ activity, dueDate }),
+            });
+
+            if (response.ok) {
+                document.getElementById('activity').value = '';
+                document.getElementById('dueDate').value = '';
+                fetchTasks();
+            } else {
+                alert('Failed to add task');
+            }
+        } catch (error) {
+            console.error('Error adding task:', error);
+        }
+    }
+
+    async function removeTask(event) {
+        const taskId = event.target.getAttribute('data-id');
+        
+        try {
+            const response = await fetchWithAuth(`/remove-task/${taskId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                fetchTasks();
+            } else {
+                alert('Failed to remove task');
+            }
+        } catch (error) {
+            console.error('Error removing task:', error);
+        }
+    }
+
+    async function editTask(event) {
+        if (event.target.closest('tr').querySelector('td').classList.contains('completed')) {
+            alert('Cannot edit completed tasks');
+            return;
+        }
+        
+        const taskId = event.target.getAttribute('data-id');
+        const row = event.target.closest('tr');
+        const cells = row.cells;
+        
+        const currentTitle = cells[0].textContent;
+        const currentDueDate = cells[1].textContent;
+        
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.value = currentTitle;
+        
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.value = currentDueDate;
+        
+        cells[0].textContent = '';
+        cells[1].textContent = '';
+        cells[0].appendChild(titleInput);
+        cells[1].appendChild(dateInput);
+        
+        const editButton = event.target;
+        editButton.textContent = 'Save';
+        editButton.removeEventListener('click', editTask);
+        editButton.addEventListener('click', async () => {
+            const newTitle = titleInput.value;
+            const newDueDate = dateInput.value;
+            
+            if (!newTitle || !newDueDate) {
+                alert('Please fill in both fields');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithAuth(`/update-task/${taskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        title: newTitle, 
+                        dueDate: newDueDate 
+                    }),
+                });
+                
+                if (response.ok) {
+                    fetchTasks();
+                } else {
+                    alert('Failed to update task');
+                }
+            } catch (error) {
+                console.error('Error updating task:', error);
+            }
+        });
+    }
+
+    async function completeTask(event) {
+        const taskId = event.target.getAttribute('data-id');
+    
+        try {
+            const response = await fetchWithAuth(`/complete-task/${taskId}`, {
+                method: 'PUT',
+            });
+
+            if (response.ok) {
+                fetchTasks();
+            } else {
+                alert('Failed to complete task');
+            }
+        } catch (error) {
+            console.error('Error completing task:', error);
+        }
+    }
+
+    // Event listener for the add button
+    document.getElementById('addButton').addEventListener('click', addTask);
+
+    // Check auth status on page load
+    checkAuth();
+</script>
+</body>
+</html>
