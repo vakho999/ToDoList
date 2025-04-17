@@ -2,8 +2,8 @@ const express = require('express');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
-const tasksDB = require('./tasksDB');
-const usersDB = require('./usersDB');
+const tasksDB = require('../tasksDB'); // If it's in a 'lib' subdirectory
+const usersDB = require('../usersDB');
 
 const app = express();
 const SECRET_KEY = 'your-secret-key'; // In production, use environment variable
@@ -12,7 +12,7 @@ const SECRET_KEY = 'your-secret-key'; // In production, use environment variable
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Authentication middleware
 function authenticateToken(req, res, next) {
@@ -33,7 +33,7 @@ function authenticateToken(req, res, next) {
 
 // Routes
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, '../index.html'));
 });
 
 // Auth routes
